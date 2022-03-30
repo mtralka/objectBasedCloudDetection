@@ -16,6 +16,8 @@ Object based cloud detection for Landsat/Sentinel imagery.
 | CLOUD |           29 |         489 | 0.944015444 |
 |       | 0.9466911765 | 0.7488514548 | 0.8387635756 |
  
+Cloud conservative
+ 
 ## Installation
 
 This program uses `poetry` for package management. Note, `GDAL` **is** required but not listed in the `pyproject.toml`. `GDAL` must be installed in the runtime environment.
