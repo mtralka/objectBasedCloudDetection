@@ -8,7 +8,7 @@ from typing import Union
 
 import numpy as np
 from obcd.classes import PlatformData
-from obcd.extract.extractors.metadata import extract_metadata
+from obcd.features.extractors.metadata import extract_metadata
 from obcd.platforms.platform_base import PlatformBase
 
 
@@ -28,7 +28,7 @@ class Landsat8(PlatformBase):
         RED = 4
         NIR = 5
         SWIR1 = 6
-        # SWIR2 = 7
+        SWIR2 = 7
         CIRRUS = 9
         BT = 10
 

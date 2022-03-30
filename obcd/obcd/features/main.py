@@ -18,9 +18,9 @@ except ImportError:
 
 import numpy as np
 from obcd.classes import PlatformData
-from obcd.extract.extractors.demdata import DEMData
-from obcd.extract.extractors.demdata import create_mapzen_dataset
-from obcd.extract.extractors.demdata import extract_dem_data
+from obcd.features.extractors.demdata import DEMData
+from obcd.features.extractors.demdata import create_mapzen_dataset
+from obcd.features.extractors.demdata import extract_dem_data
 from obcd.platforms import Landsat8
 from obcd.utils import create_outfile_dataset
 from obcd.utils import open_raster_as_array
@@ -265,7 +265,7 @@ class FeatureExtractor:
         self.feature_df["ASPECT-mean"] = mean(data.aspect, self.labels)
 
     def _add_biome_mean_to_df(self) -> None:
-        def _biome_labeler(value: np.ndarray):
+        def _biome_labeler(value: np.ndarray) -> int:
 
             unique_values, count_values = np.unique(value, return_counts=True)
 

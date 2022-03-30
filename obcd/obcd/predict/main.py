@@ -28,12 +28,17 @@ class Predict(BaseModel):
         self,
         model: Union[Path, str, MLPClassifier],
         features: Union[str, Path, pd.DataFrame],
-        labels: Union[Path, str],
-        scaler: Union[Path, str],
+        labels: Optional[Union[Path, str]] = None,
+        scaler: Optional[Union[Path, str]] = None,
         read_pkl: bool = True,
         auto_run: bool = True,
     ) -> None:
 
+        ##
+        # Model
+        ##
+        self._model_path: Optional[Path] = None
+        self.read_pkl: bool = read_pkl
         if isinstance(model, MLPClassifier):
             self.clf = model
         elif isinstance(model, (Path, str)):
@@ -42,15 +47,63 @@ class Predict(BaseModel):
                     "Not allowed to read `pkl` files. `read_pkl` must be True"
                 )
             self.clf = pickle_object(model)
+            self._model_path = Path(model) if isinstance(model, str) else model
         else:
             raise TypeError(
                 "`model` must be `MLPClassifier` or a `Path` / `str` `.pkl` object"
             )
 
-        self.read_pkl: bool = read_pkl
-        self.labels: Path = Path(labels) if isinstance(labels, str) else labels
+        ##
+        # Scaler
+        ##
+        self.scaler: Path
+        if isinstance(scaler, (str, Path)):
+            self.scaler = Path(scaler) if isinstance(scaler, str) else scaler
+        elif scaler is None and self._model_path is not None:
+
+            possible_scaler: Path = (
+                self._model_path.parent / f"{self._model_path.stem}_scaler.pkl"
+            )
+
+            if not possible_scaler.is_file():
+                raise ValueError(
+                    "`scaler` auto-detect failed, please pass `scaler` path manually"
+                )
+
+            self.scaler = possible_scaler
+        else:
+            raise ValueError("`scaler` must be `str`, `Path`, or `None`")
+
+        ##
+        # Features
+        ##
+        self._feature_path: Optional[Path] = None
+        if isinstance(features, (str, Path)):
+            self._feature_path = (
+                Path(features) if isinstance(features, str) else features
+            )
         self.feature_df: pd.DataFrame = self._open_feature_data(features, read_pkl)
-        self.scaler: Path = Path(scaler) if isinstance(scaler, str) else scaler
+
+        ##
+        # Labels
+        ##
+        self.labels: Path
+        if labels:
+            self.labels = Path(labels) if isinstance(labels, str) else labels
+        elif isinstance(features, (Path, str)):
+            possible_label: Path = (
+                self._feature_path.parent
+                / self._feature_path.name.replace("features.csv", "labels.tif")
+            )
+            if not possible_label.is_file():
+                raise ValueError(
+                    "`label` auto-detect failed, please pass `label` path manually"
+                )
+            self.labels = possible_label
+        else:
+            raise ValueError(
+                "`label` must be `str`, `Path`, or `None` (for auto-detect)"
+            )
 
         self.X_arr: np.ndarray
         self.y_predicted: np.ndarray
@@ -58,6 +111,15 @@ class Predict(BaseModel):
 
         if auto_run:
             self.run()
+
+    @property
+    def scene_id(self):
+
+        return self.feature_df["SCENE_ID"].iloc[0]
+
+        # if self._model_path is not None:
+        #     return self._feature_path.name.replace("features.csv", "")
+        # return 
 
     def run(self) -> None:
         # self.feature_df = self._prepare_data(self.feature_df)
@@ -72,9 +134,7 @@ class Predict(BaseModel):
         #     errors="ignore",
         # )
 
-        X: pd.DataFrame = self.feature_df[
-            self.SPECTRAL_COLS
-        ]
+        X: pd.DataFrame = self.feature_df[self.SPECTRAL_COLS]
 
         if "CLOUD" in self.feature_df.columns:
             self.y = self.feature_df["CLOUD"]
@@ -97,6 +157,7 @@ class Predict(BaseModel):
         # self.X["segment"] = self.feature_df["segment"]
         # self.X["PRED_CLOUD"] = self.y_predicted
         self.feature_df["PRED_CLOUD"] = self.y_predicted
+        self.feature_df["PROB_CLOUD"] = self.clf.predict_proba(self.X_arr)[:,1]
 
         if self.y is not None:
             # self.X["CLOUD"] = self.y
@@ -106,12 +167,14 @@ class Predict(BaseModel):
             )
 
     def save_prediction_to_csv(self):
-        ...
+        predicted_name: Path = self.labels.parent / f"{self.scene_id}-predicted.csv"
+        
+        self.feature_df.to_csv(predicted_name)
 
     def save_prediction_to_raster(self):
 
         with tempfile.TemporaryDirectory() as tempdir:
-            rasterized_name: Path = self.labels.parent / "rasterized_output.tif"
+            rasterized_name: Path = self.labels.parent / f"{self.scene_id}-cloud_mask.tif"
             vectorized_name: Path = Path(tempdir) / "vectorized.shp"
             vectorized_joined_name: Path = Path(tempdir) / "vectorized_joined.shp"
 

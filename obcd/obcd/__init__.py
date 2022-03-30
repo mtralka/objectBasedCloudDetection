@@ -1,4 +1,4 @@
-from obcd.extract import FeatureExtractor
+from obcd.features import FeatureExtractor
 from obcd.predict import Predict
 from obcd.train import Train
 

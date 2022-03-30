@@ -38,8 +38,6 @@ class Train(BaseModel):
         auto_run: bool = True,
     ) -> None:
 
-        self.training_df: pd.DataFrame = self._open_feature_data(data, read_pkl)
-
         self.resample: ResampleTypes
         for method_type in ResampleTypes.__members__.values():
             if resample == method_type or resample == method_type.value:
@@ -54,16 +52,20 @@ class Train(BaseModel):
             ):
                 self.resample = ResampleTypes[resample.upper().strip()]
                 break
-            else:
-                raise AttributeError(
-                    f"{resample} method not recognized. Select from {','.join([item.name for item in ResampleTypes.__members__.values()])}"
-                )
+        else:
+            raise AttributeError(
+                f"{resample} method not recognized. Select from {','.join([item.name for item in ResampleTypes.__members__.values()])}"
+            )
+
+        self.data: Union[str, Path, pd.DataFrame] = data
+        self.read_pkl: bool = read_pkl
 
         self.homogeneity_threshold = homogeneity_threshold
         self.test_size = test_size
         self.model_path: Optional[Union[Path, str]] = model_path
         self.save_model: bool = save_model
 
+        self.training_df: pd.DataFrame
         self.X_train: np.ndarray
         self.X_test: np.ndarray
         self.y_train: np.ndarray
@@ -75,7 +77,7 @@ class Train(BaseModel):
 
     def run(self) -> None:
 
-        # self.training_df = self._prepare_data(self.training_df)
+        self.training_df = self._open_feature_data(self.data, self.read_pkl)
         self._enginer_features()
         self._train()
 

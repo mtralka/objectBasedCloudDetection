@@ -17,7 +17,7 @@
   <BlockSizeY>512</BlockSizeY>
   <BandsCount>1</BandsCount>
   <DataType>Int16</DataType>
-  <ZeroBlockHttpCodes>403,404</ZeroBlockHttpCodes>
+  <ZeroBlockHttpCodes>403,404, 204</ZeroBlockHttpCodes>
   <DataValues>
     <NoData>-32768</NoData>
   </DataValues>

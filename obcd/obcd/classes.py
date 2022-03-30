@@ -68,7 +68,7 @@ class BaseModel:
 
         if "BIOME-percent" in prepared_df.columns:
             # only use objects with 60% or higher homogeneity
-            prepared_df = prepared_df[prepared_df["BIOME-percent"] >= 60]
+            prepared_df = prepared_df[prepared_df["BIOME-percent"] >= 20] # CHANGED FROM 60
 
             prepared_df.drop("BIOME-percent", axis=1, inplace=True)
 
@@ -102,11 +102,10 @@ class BaseModel:
                 "`data` must be `pd.DataFrame`, or filepath / directory `str` / `Path`"
             )
 
-        dataframe = cls._prepare_data(dataframe)
         return dataframe
 
     @classmethod
-    def __open_data(cls,data_path: Path, read_pkl: bool) -> pd.DataFrame:
+    def __open_data(cls, data_path: Path, read_pkl: bool) -> pd.DataFrame:
         return_df: pd.DataFrame
         if data_path.is_file():
             file_suffix = data_path.suffix
@@ -118,7 +117,7 @@ class BaseModel:
 
                 print(f"Detected db with {len(db_tables)} table(s)")
 
-                query: str = "SELECT * from %s"
+                query: str = "SELECT * from {}"
 
                 temp_db_df: pd.DataFrame = pd.read_sql_query(
                     query.format(db_tables.pop(0)), conn
