@@ -34,6 +34,8 @@ class PlatformData:
 
 class BaseModel:
 
+    HOMOGONEITY_THRESHOLD: float = 0.2
+
     SPECTRAL_COLS: List[str] = [
         "RED-mean",
         "BLUE-mean",
@@ -68,7 +70,9 @@ class BaseModel:
 
         if "BIOME-percent" in prepared_df.columns:
             # only use objects with 60% or higher homogeneity
-            prepared_df = prepared_df[prepared_df["BIOME-percent"] >= 20] # CHANGED FROM 60
+            prepared_df = prepared_df[
+                prepared_df["BIOME-percent"] >= cls.HOMOGONEITY_THRESHOLD
+            ]
 
             prepared_df.drop("BIOME-percent", axis=1, inplace=True)
 

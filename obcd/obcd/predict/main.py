@@ -122,7 +122,7 @@ class Predict(BaseModel):
 
         # if self._model_path is not None:
         #     return self._feature_path.name.replace("features.csv", "")
-        # return 
+        # return
 
     def run(self) -> None:
         # self.feature_df = self._prepare_data(self.feature_df)
@@ -160,7 +160,7 @@ class Predict(BaseModel):
         # self.X["segment"] = self.feature_df["segment"]
         # self.X["PRED_CLOUD"] = self.y_predicted
         self.feature_df["PRED_CLOUD"] = self.y_predicted
-        self.feature_df["PROB_CLOUD"] = self.clf.predict_proba(self.X_arr)[:,1]
+        self.feature_df["PROB_CLOUD"] = self.clf.predict_proba(self.X_arr)[:, 1]
 
         if self.y is not None:
             # self.X["CLOUD"] = self.y
@@ -171,13 +171,15 @@ class Predict(BaseModel):
 
     def save_prediction_to_csv(self):
         predicted_name: Path = self.labels.parent / f"{self.scene_id}-predicted.csv"
-        
+
         self.feature_df.to_csv(predicted_name)
 
     def save_prediction_to_raster(self):
 
         with tempfile.TemporaryDirectory() as tempdir:
-            rasterized_name: Path = self.labels.parent / f"{self.scene_id}-cloud_mask.tif"
+            rasterized_name: Path = (
+                self.labels.parent / f"{self.scene_id}-cloud_mask.tif"
+            )
             vectorized_name: Path = Path(tempdir) / "vectorized.shp"
             vectorized_joined_name: Path = Path(tempdir) / "vectorized_joined.shp"
 

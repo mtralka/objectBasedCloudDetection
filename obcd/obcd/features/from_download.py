@@ -8,7 +8,9 @@ from typing import Union
 
 def extract_downloaded_file(target_folder: Union[str, Path]) -> None:
 
-    folder_path: Path = Path(target_folder) if isinstance(target_folder, str) else target_folder
+    folder_path: Path = (
+        Path(target_folder) if isinstance(target_folder, str) else target_folder
+    )
     subfolders: List[Path]
     if folder_path.is_dir() and folder_path.suffix != ".tar":
         subfolders = [x for x in folder_path.iterdir() if x.suffix == ".tar"]

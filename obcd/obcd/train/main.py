@@ -148,57 +148,15 @@ class Train(BaseModel):
 
     def _train(self) -> None:
 
-        # clf = MLPClassifier(
-        #     hidden_layer_sizes=(10,),
-        #     max_iter=300,
-        #     alpha=1e-2,
-        #     solver="adam",
-        #     verbose=10,
-        #     tol=1e-4,
-        #     random_state=1,
-        #     learning_rate_init=0.005,
-        # )
-
-        # OG
-        # clf = MLPClassifier(
-        #     hidden_layer_sizes=(50, 50),
-        #     activation="relu",
-        #     solver="adam",
-        #     alpha=0,
-        #     batch_size=128,
-        #     learning_rate_init=0.005,
-        #     shuffle=True,
-        #     validation_fraction=0.5,
-        #     max_iter=100,
-        #     early_stopping=True,
-        #     n_iter_no_change=20,
-        #     verbose=10,
-        # )
-
-        # L
-        # clf = MLPClassifier(
-        #     hidden_layer_sizes=(50, 75, 100),
-        #     activation="relu",
-        #     solver="adam",
-        #     alpha=1e-06,
-        #     batch_size=128,
-        #     learning_rate_init=0.005,
-        #     shuffle=True,
-        #     validation_fraction=0.5,
-        #     max_iter=100,
-        #     early_stopping=True,
-        #     n_iter_no_change=20,
-        #     verbose=10,
-        # )
-
-        # M
+        # Model G
+        # .1 train / test split
+        # 20 homogoneity threshold
         clf = MLPClassifier(
-            hidden_layer_sizes=(50, 75, 100),
+            hidden_layer_sizes=(50, 50),
             activation="relu",
             solver="adam",
-            alpha=1e-06,
+            alpha=0,
             batch_size=128,
-            learning_rate="invscaling",
             learning_rate_init=0.005,
             shuffle=True,
             validation_fraction=0.5,
@@ -208,39 +166,10 @@ class Train(BaseModel):
             verbose=10,
         )
 
-        # param_grid = {
-        #     'alpha' : [1.e-01, 1.e-02, 1.e-03, 1.e-04, 1.e-05, 1.e-06],
-        #     'hidden_layer_sizes' : [(50,50,), (50,100,50), (50,75,100)],
-        #     'solver': ['adam', 'sgd', 'lbfgs'],
-        #     'activation': ['relu', 'tanh', 'logistic', 'identity'],
-        #     'learning_rate' : ['constant', 'adaptive', 'invscaling']
-        #     }
-
-        # param_grid = {
-        #     'alpha' : [1.e-01,  1.e-03, 1.e-06],
-        #     'hidden_layer_sizes' : [(50,50,), (50,100,50), (50,75,100)],
-        #     'solver': ['adam'],
-        #     'activation': ['relu'],
-        #     }
-
-        # param_grid = {
-        #     'alpha' : [0, 1.e-06],
-        #     'hidden_layer_sizes' : [(50,75,100), (50, 50)],
-        #     'solver': ['adam'],
-        #     'activation': ['relu'],
-        #     'learning_rate' : ['constant', 'adaptive', 'invscaling'],
-        #     'learning_rate_init' : [0.005, 0.2]
-        #     }
-
-        # model = MLPClassifier(early_stopping=True)
-
-        # clf = GridSearchCV(estimator=model, n_jobs=5, cv=3, param_grid=param_grid, verbose=5)
-
         clf.fit(self.X_train, self.y_train)
 
         self.clf = clf
         self.score = clf.score(self.X_test, self.y_test)
-        #print('Best parameters found:\n', clf.best_params_)
 
     def pickle_model(self, path: Optional[Union[Path, str]] = None):
         save_str: Union[str, Path] = path if path else self.model_path

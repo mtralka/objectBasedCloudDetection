@@ -226,7 +226,7 @@ def app() -> None:
             labels=args.labels,
             scaler=args.scaler,
             read_pkl=args.read_pkl,
-            auto_run=True
+            auto_run=True,
         )
 
         if args.sqlite:
