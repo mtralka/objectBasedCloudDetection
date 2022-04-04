@@ -11,6 +11,7 @@ test_data/
 *.geojson
 *.dbf
 *.pkl
+*.zip
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

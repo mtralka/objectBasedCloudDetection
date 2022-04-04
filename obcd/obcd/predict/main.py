@@ -11,6 +11,7 @@ from obcd.classes import BaseModel
 from obcd.utils import get_raster_metadata
 from obcd.utils import pickle_object
 import pandas as pd
+from skimage import morphology
 from sklearn.neural_network import MLPClassifier
 from sklearn_pandas import DataFrameMapper
 
@@ -18,9 +19,11 @@ from sklearn_pandas import DataFrameMapper
 try:
     import gdal
     import gdalconst
+    import ogr
 except ImportError:
     from osgeo import gdal
     from osgeo import gdalconst
+    from osgeo import ogr
 
 
 class Predict(BaseModel):
@@ -180,20 +183,38 @@ class Predict(BaseModel):
 
             raster_metadata: dict = get_raster_metadata(str(self.labels))
 
-            subprocess.run(
-                [
-                    "gdal_polygonize",
-                    str(self.labels),
-                    "-b",
-                    "1",
-                    "-f",
-                    "ESRI Shapefile",
-                    str(vectorized_name),
-                    "labels",
-                    "DN",
-                ],
-                shell=True,
-            )
+            # subprocess.run(
+            #     [
+            #         "gdal_polygonize",
+            #         str(self.labels),
+            #         "-b",
+            #         "1",
+            #         "-f",
+            #         "ESRI Shapefile",
+            #         str(vectorized_name),
+            #         "labels",
+            #         "DN",
+            #     ],
+            #     shell=True,
+            # )
+            # print("done polyg")
+
+            labels_ds = gdal.Open(str(self.labels))
+
+            driver = ogr.GetDriverByName("ESRI Shapefile")
+            out_ds = driver.CreateDataSource(str(vectorized_name))
+            out_layer = out_ds.CreateLayer("labels", srs=labels_ds.GetSpatialRef())
+
+            field = ogr.FieldDefn("DN", ogr.OFTInteger)
+            out_layer.CreateField(field)
+
+            gdal.Polygonize(labels_ds.GetRasterBand(1), None, out_layer, 0, [])
+
+            labels_ds = None
+            out_ds = None
+            out_layer = None
+            field = None
+            out_layer = None
 
             gdf: gpd.GeoDataFrame = gpd.read_file(str(vectorized_name))
 

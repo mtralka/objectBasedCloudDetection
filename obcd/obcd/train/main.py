@@ -2,6 +2,7 @@ from collections import Counter
 from enum import Enum
 from enum import auto
 from pathlib import Path
+from tabnanny import verbose
 from typing import Any
 from typing import Optional
 from typing import Union
@@ -158,12 +159,46 @@ class Train(BaseModel):
         #     learning_rate_init=0.005,
         # )
 
+        # OG
+        # clf = MLPClassifier(
+        #     hidden_layer_sizes=(50, 50),
+        #     activation="relu",
+        #     solver="adam",
+        #     alpha=0,
+        #     batch_size=128,
+        #     learning_rate_init=0.005,
+        #     shuffle=True,
+        #     validation_fraction=0.5,
+        #     max_iter=100,
+        #     early_stopping=True,
+        #     n_iter_no_change=20,
+        #     verbose=10,
+        # )
+
+        # L
+        # clf = MLPClassifier(
+        #     hidden_layer_sizes=(50, 75, 100),
+        #     activation="relu",
+        #     solver="adam",
+        #     alpha=1e-06,
+        #     batch_size=128,
+        #     learning_rate_init=0.005,
+        #     shuffle=True,
+        #     validation_fraction=0.5,
+        #     max_iter=100,
+        #     early_stopping=True,
+        #     n_iter_no_change=20,
+        #     verbose=10,
+        # )
+
+        # M
         clf = MLPClassifier(
-            hidden_layer_sizes=(50, 50),
+            hidden_layer_sizes=(50, 75, 100),
             activation="relu",
             solver="adam",
-            alpha=0,
+            alpha=1e-06,
             batch_size=128,
+            learning_rate="invscaling",
             learning_rate_init=0.005,
             shuffle=True,
             validation_fraction=0.5,
@@ -174,20 +209,38 @@ class Train(BaseModel):
         )
 
         # param_grid = {
-        #     'n_estimators': [100, 200, 300, 500]
+        #     'alpha' : [1.e-01, 1.e-02, 1.e-03, 1.e-04, 1.e-05, 1.e-06],
+        #     'hidden_layer_sizes' : [(50,50,), (50,100,50), (50,75,100)],
+        #     'solver': ['adam', 'sgd', 'lbfgs'],
+        #     'activation': ['relu', 'tanh', 'logistic', 'identity'],
+        #     'learning_rate' : ['constant', 'adaptive', 'invscaling']
         #     }
-        # random_forest_model = RandomForestClassifier()
-        # clf = GridSearchCV(estimator = random_forest_model , param_grid = param_grid, cv = 3, n_jobs = -1)
-        # print()
 
-        # clf = RandomForestClassifier(n_estimators=200)
+        # param_grid = {
+        #     'alpha' : [1.e-01,  1.e-03, 1.e-06],
+        #     'hidden_layer_sizes' : [(50,50,), (50,100,50), (50,75,100)],
+        #     'solver': ['adam'],
+        #     'activation': ['relu'],
+        #     }
+
+        # param_grid = {
+        #     'alpha' : [0, 1.e-06],
+        #     'hidden_layer_sizes' : [(50,75,100), (50, 50)],
+        #     'solver': ['adam'],
+        #     'activation': ['relu'],
+        #     'learning_rate' : ['constant', 'adaptive', 'invscaling'],
+        #     'learning_rate_init' : [0.005, 0.2]
+        #     }
+
+        # model = MLPClassifier(early_stopping=True)
+
+        # clf = GridSearchCV(estimator=model, n_jobs=5, cv=3, param_grid=param_grid, verbose=5)
 
         clf.fit(self.X_train, self.y_train)
 
         self.clf = clf
         self.score = clf.score(self.X_test, self.y_test)
-
-        # print(self.score)
+        #print('Best parameters found:\n', clf.best_params_)
 
     def pickle_model(self, path: Optional[Union[Path, str]] = None):
         save_str: Union[str, Path] = path if path else self.model_path
