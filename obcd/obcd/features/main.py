@@ -2,7 +2,7 @@ import logging
 from pathlib import Path
 import sqlite3
 import tempfile
-from typing import Any
+from typing import Any, Tuple
 from typing import Dict
 from typing import List
 from typing import Optional
@@ -22,6 +22,7 @@ from obcd.features.extractors.demdata import DEMData
 from obcd.features.extractors.demdata import create_mapzen_dataset
 from obcd.features.extractors.demdata import extract_dem_data
 from obcd.platforms import Landsat8
+from obcd.platforms import Sentinel2
 from obcd.utils import create_outfile_dataset
 from obcd.utils import open_raster_as_array
 from obcd.utils import validate_path
@@ -78,10 +79,11 @@ class FeatureExtractor:
         auto_run: bool = True,
     ):
 
+        file_prefixes: Tuple[str] = ("_MTL", "MTD_")
         infile: Path = validate_path(infile, check_exists=True, check_is_file=False)
         if infile.is_dir():
             for file in infile.iterdir():
-                if "_MTL" in file.name and file.suffix in [".txt", ".xml"]:
+                if any((x in file.name for x in file_prefixes)) and file.suffix in [".txt", ".xml"]:
                     self.infile = infile / file
                     break
             else:
@@ -123,7 +125,7 @@ class FeatureExtractor:
         self.save_labels: bool = save_labels
         self.auto_run: bool = auto_run
 
-        self.supported_platforms: Dict[str, Any] = {"Landsat8": Landsat8}
+        self.supported_platforms: Dict[str, Any] = {"Landsat8": Landsat8, "Sentinel2" : Sentinel2}
 
         self.quickshift_kwargs: Dict[str, Union[float, int, bool]] = {
             "kernel_size": kernel_size,

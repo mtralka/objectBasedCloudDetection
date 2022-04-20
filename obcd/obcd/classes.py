@@ -43,7 +43,7 @@ class BaseModel:
         "NIR-mean",
         "SWIR1-mean",
         "CIRRUS-mean",
-        "BT-mean",
+        # "BT-mean",
         "DEM-mean",
         "SLOPE-mean",
         "ASPECT-mean",

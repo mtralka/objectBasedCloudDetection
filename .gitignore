@@ -12,6 +12,7 @@ test_data/
 *.dbf
 *.pkl
 *.zip
+obcd/data/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
