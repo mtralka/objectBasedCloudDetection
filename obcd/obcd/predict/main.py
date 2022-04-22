@@ -157,8 +157,6 @@ class Predict(BaseModel):
 
         self.y_predicted: np.ndarray = self.clf.predict(self.X_arr)
 
-        # self.X["segment"] = self.feature_df["segment"]
-        # self.X["PRED_CLOUD"] = self.y_predicted
         self.feature_df["PRED_CLOUD"] = self.y_predicted
         self.feature_df["PROB_CLOUD"] = self.clf.predict_proba(self.X_arr)[:, 1]
 
@@ -174,32 +172,19 @@ class Predict(BaseModel):
 
         self.feature_df.to_csv(predicted_name)
 
-    def save_prediction_to_raster(self):
+    def save_prediction_to_raster(self, save_probability: bool = False):
 
         with tempfile.TemporaryDirectory() as tempdir:
             rasterized_name: Path = (
                 self.labels.parent / f"{self.scene_id}-cloud_mask.tif"
             )
+            rasterized_name_prob: Path = (
+                self.labels.parent / f"{self.scene_id}-cloud_prob.tif"
+            )
             vectorized_name: Path = Path(tempdir) / "vectorized.shp"
-            vectorized_joined_name: Path = Path(tempdir) / "vectorized_joined.shp"
+            vectorized_joined_name: Path = Path(tempdir) / "vectorized_joined.shp"            
 
             raster_metadata: dict = get_raster_metadata(str(self.labels))
-
-            # subprocess.run(
-            #     [
-            #         "gdal_polygonize",
-            #         str(self.labels),
-            #         "-b",
-            #         "1",
-            #         "-f",
-            #         "ESRI Shapefile",
-            #         str(vectorized_name),
-            #         "labels",
-            #         "DN",
-            #     ],
-            #     shell=True,
-            # )
-            # print("done polyg")
 
             labels_ds = gdal.Open(str(self.labels))
 
@@ -223,29 +208,30 @@ class Predict(BaseModel):
             gdf = gdf.merge(self.feature_df, left_on="DN", right_on="segment")
             self.gdf = gdf
 
-            gdf[["DN", "geometry", "PRED_CLOUD"]].to_file(str(vectorized_joined_name))
+            gdf[["DN", "geometry", "PRED_CLOUD", "PROB_CLOUD"]].to_file(str(vectorized_joined_name))
 
-            subprocess.run(
-                [
-                    "gdal_rasterize",
-                    "-a",
-                    "PRED_CLOUD",
-                    "-ts",
-                    str(round(float(raster_metadata["x_size"]))),
-                    str(round(float(raster_metadata["y_size"]))),
-                    "-a_nodata",
-                    "0",
-                    "-te",
-                    str(raster_metadata["xmin"]),
-                    str(raster_metadata["ymin"]),
-                    str(raster_metadata["xmax"]),
-                    str(raster_metadata["ymax"]),
-                    "-ot",
-                    "Byte",
-                    "-of",
-                    "Gtiff",
-                    str(vectorized_joined_name),
-                    str(rasterized_name),
-                ],
-                shell=True,
-            )
+            vector_ds = ogr.Open(str(vectorized_joined_name))
+            vector_layer = vector_ds.GetLayer()
+
+            out_ds = gdal.GetDriverByName('GTiff').Create(str(rasterized_name), raster_metadata["x_size"], raster_metadata["y_size"], 1, gdalconst.GDT_Byte)
+            out_ds.SetGeoTransform(raster_metadata["geo_transform"])
+            out_ds.SetProjection(raster_metadata["wkt_projection"])
+
+            band = out_ds.GetRasterBand(1)
+            band.SetNoDataValue(0)
+
+            gdal.RasterizeLayer(out_ds, [1], vector_layer, options=["ATTRIBUTE=PRED_CLOUD"])
+
+            out_ds = None
+
+            if save_probability:
+                out_ds = gdal.GetDriverByName('GTiff').Create(str(rasterized_name_prob), raster_metadata["x_size"], raster_metadata["y_size"], 1, gdalconst.GDT_Float32)
+                out_ds.SetGeoTransform(raster_metadata["geo_transform"])
+                out_ds.SetProjection(raster_metadata["wkt_projection"])
+
+                gdal.RasterizeLayer(out_ds, [1], vector_layer, options=["ATTRIBUTE=PROB_CLOUD"])
+
+                out_ds = None
+            vector_ds = None
+            vector_layer = None
+            band = None
