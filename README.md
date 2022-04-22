@@ -1,4 +1,4 @@
-# Object Based Cloud Detection - OBCD
+# Python Object Based Cloud Detection (OBCD)
 
 🚧 **under construction** 🚧 
 
