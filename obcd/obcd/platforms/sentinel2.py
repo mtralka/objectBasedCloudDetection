@@ -4,12 +4,13 @@ from pathlib import Path
 from typing import Any
 from typing import Dict
 from typing import Union
-from skimage.measure import block_reduce
 
 import numpy as np
 from obcd.classes import PlatformData
 from obcd.features.extractors.metadata import extract_metadata
 from obcd.platforms.platform_base import PlatformBase
+from skimage.measure import block_reduce
+
 
 try:
     import gdal
@@ -38,7 +39,7 @@ class Sentinel2(PlatformBase):
         Bands.NIR,
     )
 
-    OUT_RESOLUTION: int = 20
+    OUT_RESOLUTION: int = 30
     NO_DATA: int = -9999
 
     @staticmethod
@@ -136,8 +137,20 @@ class Sentinel2(PlatformBase):
                 band_ds = gdal.Warp(
                     "",
                     str(band_path),
-                    xRes=20,
-                    yRes=20,
+                    xRes=30, # TODO
+                    yRes=30, # TODO
+                    resampleAlg=resample_algorithm,
+                    srcNodata=0,
+                    dstNodata=0,
+                    format="VRT",
+                )
+            elif band in [cls.Bands.SWIR1, cls.Bands.SWIR2]:
+                resample_algorithm: str = "near"
+                band_ds = gdal.Warp(
+                    "",
+                    str(band_path),
+                    xRes=10, # TODO
+                    yRes=10, # TODO
                     resampleAlg=resample_algorithm,
                     srcNodata=0,
                     dstNodata=0,
@@ -153,13 +166,16 @@ class Sentinel2(PlatformBase):
             ##
             # Upsample RGB and NIR to 20m
             ##
-            if band in cls.RESAMPLE_BANDS:
-                band_array = block_reduce(band_array, block_size=(2, 2), func=np.mean)
+            if band in cls.RESAMPLE_BANDS: # TODO from 2
+                band_array = block_reduce(band_array, block_size=(3, 3), func=np.mean)
+
+            if band in [cls.Bands.SWIR1, cls.Bands.SWIR2]: # TODO from 2
+                band_array = block_reduce(band_array, block_size=(3, 3), func=np.mean)
 
             ##
             # Use SWIR1 band as projection base
             ##
-            if band == cls.Bands.SWIR1:
+            if band == cls.Bands.CIRRUS:
                 parameters["geo_transform"] = band_ds.GetGeoTransform()
                 parameters["projection_reference"] = band_ds.GetProjectionRef()
 

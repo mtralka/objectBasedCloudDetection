@@ -2,10 +2,11 @@ import logging
 from pathlib import Path
 import sqlite3
 import tempfile
-from typing import Any, Tuple
+from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
+from typing import Tuple
 from typing import Union
 
 
@@ -242,6 +243,7 @@ class FeatureExtractor:
     def _add_dem_mean_to_df(self) -> None:
 
         with tempfile.TemporaryDirectory() as tempdir:
+
             ds = create_mapzen_dataset(
                 self.platform_data.projection_reference,
                 self.platform_data.x_size,

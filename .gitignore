@@ -13,6 +13,7 @@ test_data/
 *.pkl
 *.zip
 obcd/data/
+obcd/OBCD-Sentiel
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
