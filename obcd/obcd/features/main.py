@@ -39,32 +39,7 @@ logger = logging.getLogger(__name__)
 
 
 class FeatureExtractor:
-    """Feature Extractor
-
-    Attributes
-    ----------
-    `infile` : Union[Path, str]
-        Path to Sentinel-2 or Landast-8 file EX. {*._MTL.txt, MTD_*.xml}
-
-    Properties
-    -------
-    `temp_dirname` : str
-        Full path to temporary directory - `self.platform_data.scene_id` + '_temp'
-
-    Methods
-    -------
-    `run()`
-        Run fmask routine. Generates np.ndarray array `self.results` with value code as described with attributes `water_value`, `snow_value`, `cloud_shadow_value`, `cloud_value`
-    `save_to_sqlite(db_name: str = "OBCD-features.db", table_name: Optional[str] = None)`
-        Save `feature_df` to
-    `save_to_csv()`
-        ss
-
-
-    Example
-    -------
-    >>>
-    """
+    """Feature Extractor"""
 
     def __init__(
         self,
