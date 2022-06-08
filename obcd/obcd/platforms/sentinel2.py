@@ -201,6 +201,10 @@ class Sentinel2(PlatformBase):
                 band_array == 0, cls.NO_DATA, band_array
             ).astype(np.int16)
 
+            if band == cls.Bands.NIR:
+                if processed_band_array.shape == (427, 477):
+                    processed_band_array = processed_band_array[:-1, :-1]
+
             parameters["band_data"][band_name] = processed_band_array
 
             band_ds = None

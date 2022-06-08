@@ -47,6 +47,8 @@ class BaseModel:
         "DEM-mean",
         "SLOPE-mean",
         "ASPECT-mean",
+        # "SUN_AZIMUTH",  # NEW
+        # "SUN_ELEVATION"
     ]
 
     TRAINING_COLS: List[str] = ["BIOME-percent", "BIOME-all", "BIOME-name"]
